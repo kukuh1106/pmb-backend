@@ -16,10 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);
 
-        // API middleware configuration
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
+        // Stateless API - tidak memerlukan CSRF token
+        // Autentikasi menggunakan Bearer token dari Sanctum
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
