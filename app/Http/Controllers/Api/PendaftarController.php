@@ -57,7 +57,7 @@ class PendaftarController extends Controller
                     'jenjang' => $pendaftar->prodi->jenjang,
                 ] : null,
                 'jadwal_ujian' => $pendaftar->jadwalUjian ? [
-                    'tanggal' => $pendaftar->jadwalUjian->tanggal->format('Y-m-d'),
+                    'tanggal' => $pendaftar->jadwalUjian->tanggal->translatedFormat('l, d F Y'),
                     'sesi' => $pendaftar->jadwalUjian->sesi->nama ?? null,
                     'jam' => $pendaftar->jadwalUjian->sesi ? 
                         "{$pendaftar->jadwalUjian->sesi->jam_mulai} - {$pendaftar->jadwalUjian->sesi->jam_selesai}" : null,
@@ -265,7 +265,7 @@ class PendaftarController extends Controller
     {
         /** @var Pendaftar $pendaftar */
         $pendaftar = $request->user();
-        $pendaftar->load(['prodi', 'jadwalUjian.sesi', 'jadwalUjian.ruang', 'periode']);
+        $pendaftar->load(['prodi', 'jadwalUjian.sesi', 'jadwalUjian.ruang', 'periode', 'dokumen']);
 
         // Check if pendaftar has selected jadwal
         if (!$pendaftar->jadwal_ujian_id) {
@@ -273,6 +273,17 @@ class PendaftarController extends Controller
                 'success' => false,
                 'message' => 'Anda belum memilih jadwal ujian',
             ], 422);
+        }
+
+        // Get photo URL
+        $fotoUrl = null;
+        if ($pendaftar->foto_path) {
+            $fotoUrl = $this->fileUploadService->getFileUrl($pendaftar->foto_path);
+        } else {
+            $pasFoto = $pendaftar->dokumen->where('jenis_dokumen', 'pas_foto')->first();
+            if ($pasFoto) {
+                $fotoUrl = $this->fileUploadService->getFileUrl($pasFoto->file_path);
+            }
         }
 
         return response()->json([
@@ -298,7 +309,7 @@ class PendaftarController extends Controller
                             : null,
                         'ruang' => $pendaftar->jadwalUjian->ruang->nama ?? null,
                     ],
-                    'foto' => $pendaftar->foto_path,
+                    'foto' => $fotoUrl,
                 ],
             ],
         ]);
