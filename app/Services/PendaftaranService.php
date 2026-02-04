@@ -80,6 +80,7 @@ class PendaftaranService
     {
         $pendaftar = Pendaftar::where('nomor_pendaftaran', $nomorPendaftaran)
             ->whereDate('tanggal_lahir', $tanggalLahir)
+            ->with('prodi')
             ->first();
 
         if (!$pendaftar) {
@@ -89,8 +90,10 @@ class PendaftaranService
         return [
             'nomor_pendaftaran' => $pendaftar->nomor_pendaftaran,
             'nama_lengkap' => $pendaftar->nama_lengkap,
-            'prodi' => $pendaftar->prodi->nama ?? null,
-            'jenjang' => $pendaftar->prodi->jenjang ?? null,
+            'prodi' => $pendaftar->prodi ? [
+                'nama' => $pendaftar->prodi->nama,
+                'jenjang' => $pendaftar->prodi->jenjang,
+            ] : null,
             'status_kelulusan' => $pendaftar->status_kelulusan,
             'nilai_ujian' => $pendaftar->nilai_ujian,
         ];
