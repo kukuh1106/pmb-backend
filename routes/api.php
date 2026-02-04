@@ -51,6 +51,7 @@ Route::prefix('pendaftar')
         Route::get('/dashboard', [PendaftarController::class, 'dashboard']);
         Route::get('/biodata', [PendaftarController::class, 'getBiodata']);
         Route::put('/biodata', [PendaftarController::class, 'updateBiodata']);
+        Route::get('/dokumen', [PendaftarController::class, 'getDokumen']);
         Route::post('/dokumen', [PendaftarController::class, 'uploadDokumen']);
         Route::post('/foto', [PendaftarController::class, 'uploadFoto']);
         Route::get('/jadwal', [PendaftarController::class, 'getJadwal']);

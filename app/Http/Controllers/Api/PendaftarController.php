@@ -132,6 +132,34 @@ class PendaftarController extends Controller
     }
 
     /**
+     * Get list of uploaded documents
+     */
+    public function getDokumen(Request $request): JsonResponse
+    {
+        /** @var Pendaftar $pendaftar */
+        $pendaftar = $request->user();
+        $dokumen = $pendaftar->dokumen()->get();
+
+        $data = $dokumen->map(function ($doc) {
+            return [
+                'id' => $doc->id,
+                'jenis_dokumen' => $doc->jenis_dokumen,
+                'file_name' => $doc->file_name,
+                'file_size' => $doc->file_size,
+                'file_url' => $this->fileUploadService->getFileUrl($doc->file_path),
+                'status_verifikasi' => $doc->status_verifikasi,
+                'catatan' => $doc->catatan,
+                'created_at' => $doc->created_at->toISOString(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
      * Upload dokumen
      */
     public function uploadDokumen(UploadDokumenRequest $request): JsonResponse
