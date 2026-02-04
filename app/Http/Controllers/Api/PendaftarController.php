@@ -36,6 +36,12 @@ class PendaftarController extends Controller
         $dokumenPending = $pendaftar->dokumen->where('status_verifikasi', 'pending')->count();
         $dokumenInvalid = $pendaftar->dokumen->where('status_verifikasi', 'tidak_valid')->count();
 
+        // Required documents check (ijazah, transkrip, ktp, pas_foto are required)
+        $requiredDocs = ['ijazah', 'transkrip', 'ktp', 'pas_foto'];
+        $uploadedDocs = $pendaftar->dokumen->pluck('jenis_dokumen')->toArray();
+        $missingDocs = array_diff($requiredDocs, $uploadedDocs);
+        $dokumenLengkap = empty($missingDocs) && $dokumenInvalid === 0;
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -58,11 +64,14 @@ class PendaftarController extends Controller
                     'ruang' => $pendaftar->jadwalUjian->ruang->nama ?? null,
                 ] : null,
                 'biodata_lengkap' => $pendaftar->isBiodataComplete(),
+                'dokumen_lengkap' => $dokumenLengkap,
                 'dokumen' => [
                     'total' => $dokumenCount,
                     'valid' => $dokumenValid,
                     'pending' => $dokumenPending,
                     'tidak_valid' => $dokumenInvalid,
+                    'required' => $requiredDocs,
+                    'missing' => array_values($missingDocs),
                 ],
             ],
         ]);
