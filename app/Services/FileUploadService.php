@@ -97,10 +97,51 @@ class FileUploadService
 
     /**
      * Get file URL
+     * For S3, returns temporary signed URL (valid for 1 hour)
+     * For local storage, returns regular URL
      */
     public function getFileUrl(string $path): string
     {
+        if ($this->disk === 's3') {
+            return $this->getTemporaryUrl($path);
+        }
+        
         return Storage::disk($this->disk)->url($path);
+    }
+
+    /**
+     * Get temporary signed URL for S3 files
+     * 
+     * @param string $path File path in storage
+     * @param int $expiresInMinutes URL expiration time in minutes (default: 60)
+     * @return string Temporary signed URL
+     */
+    public function getTemporaryUrl(string $path, int $expiresInMinutes = 60): string
+    {
+        if (!Storage::disk($this->disk)->exists($path)) {
+            throw new \Exception("File not found: {$path}");
+        }
+
+        return Storage::disk($this->disk)->temporaryUrl(
+            $path,
+            now()->addMinutes($expiresInMinutes)
+        );
+    }
+
+    /**
+     * Check if file exists
+     */
+    public function fileExists(string $path): bool
+    {
+        return Storage::disk($this->disk)->exists($path);
+    }
+
+    /**
+     * Get file size in bytes
+     */
+    public function getFileSize(string $path): int
+    {
+        return Storage::disk($this->disk)->size($path);
     }
 
     /**
