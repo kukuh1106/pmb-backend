@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+  # Laravel Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pmb-backend
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      - APP_NAME=PMB Pascasarjana
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=http://localhost:8000
+      - LOG_CHANNEL=stack
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=pmb_pascasarjana
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres123
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - WAHA_API_URL=http://waha:3000
+      - WAHA_SESSION=default
+      - AUTO_MIGRATE=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pmb-network
+    volumes:
+      - storage-data:/var/www/html/storage/app
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: pmb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pmb_pascasarjana
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pmb-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: pmb-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pmb-network
+
+  # WAHA - WhatsApp HTTP API (Optional)
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: pmb-waha
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - WHATSAPP_HOOK_URL=http://backend/api/webhook/whatsapp
+      - WHATSAPP_HOOK_EVENTS=message
+    volumes:
+      - waha-data:/app/.waha
+    networks:
+      - pmb-network
+    profiles:
+      - whatsapp
+
+networks:
+  pmb-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  storage-data:
+  waha-data:

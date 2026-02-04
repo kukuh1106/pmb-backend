@@ -228,6 +228,64 @@ php artisan route:list     # List all routes
 php artisan tinker         # Interactive console
 ```
 
+## Docker Deployment
+
+### Quick Start dengan Docker Compose
+
+```bash
+# Build dan jalankan semua services
+docker compose up -d
+
+# Dengan WhatsApp integration (WAHA)
+docker compose --profile whatsapp up -d
+```
+
+### Build Docker Image
+
+```bash
+# Build image
+docker build -t pmb-backend:latest .
+
+# Run container
+docker run -d \
+  --name pmb-backend \
+  -p 8000:80 \
+  -e DB_HOST=host.docker.internal \
+  -e DB_DATABASE=pmb_pascasarjana \
+  -e DB_USERNAME=postgres \
+  -e DB_PASSWORD=secret \
+  pmb-backend:latest
+```
+
+### Docker Compose Services
+
+| Service    | Port | Deskripsi                         |
+| ---------- | ---- | --------------------------------- |
+| `backend`  | 8000 | Laravel API                       |
+| `postgres` | 5432 | PostgreSQL Database               |
+| `redis`    | 6379 | Redis Cache                       |
+| `waha`     | 3000 | WAHA WhatsApp (profile: whatsapp) |
+
+### Environment Variables untuk Docker
+
+| Variable       | Default            | Deskripsi           |
+| -------------- | ------------------ | ------------------- |
+| `APP_ENV`      | `production`       | Environment mode    |
+| `APP_DEBUG`    | `false`            | Debug mode          |
+| `DB_HOST`      | `postgres`         | Database host       |
+| `REDIS_HOST`   | `redis`            | Redis host          |
+| `AUTO_MIGRATE` | `false`            | Auto-run migrations |
+| `WAHA_API_URL` | `http://waha:3000` | WAHA API endpoint   |
+
+### File Structure Docker
+
+```
+docker/
+├── nginx.conf        # Nginx configuration
+├── supervisord.conf  # Supervisor config (php-fpm, nginx, queue)
+└── entrypoint.sh     # Container initialization script
+```
+
 ## License
 
 Proprietary - PT. GSP

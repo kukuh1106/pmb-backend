@@ -1,0 +1,1346 @@
+{
+  "info": {
+    "_postman_id": "pmb-pascasarjana-api",
+    "name": "PMB Pascasarjana API",
+    "description": "API Collection untuk Sistem Penerimaan Mahasiswa Baru (PMB) Program Pascasarjana\n\n## Authentication\nAPI menggunakan Laravel Sanctum dengan Bearer Token.\n\n## Roles\n- **pendaftar**: Calon mahasiswa\n- **prodi**: Staff program studi\n- **admin**: Administrator sistem",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pendaftar_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "description": "Endpoint publik tanpa autentikasi",
+      "item": [
+        {
+          "name": "Get Program Studi",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prodi",
+              "host": ["{{base_url}}"],
+              "path": ["prodi"]
+            },
+            "description": "Mendapatkan daftar program studi yang aktif untuk form registrasi"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Pendaftar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.kode_akses) {",
+                  "    pm.collectionVariables.set('kode_akses', jsonData.data.kode_akses);",
+                  "    pm.collectionVariables.set('nomor_pendaftaran', jsonData.data.nomor_pendaftaran);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nama_lengkap\": \"John Doe\",\n    \"no_whatsapp\": \"081234567890\",\n    \"prodi_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": ["{{base_url}}"],
+              "path": ["register"]
+            },
+            "description": "Registrasi pendaftar baru. Akan mengembalikan nomor pendaftaran dan kode akses."
+          },
+          "response": []
+        },
+        {
+          "name": "Cek Kelulusan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nomor_pendaftaran\": \"PMB202600001\",\n    \"tanggal_lahir\": \"1995-05-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cek-kelulusan",
+              "host": ["{{base_url}}"],
+              "path": ["cek-kelulusan"]
+            },
+            "description": "Cek status kelulusan berdasarkan nomor pendaftaran dan tanggal lahir"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "description": "Endpoint autentikasi",
+      "item": [
+        {
+          "name": "Login Pendaftar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('pendaftar_token', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nomor_pendaftaran\": \"PMB202600001\",\n    \"kode_akses\": \"JDFYGH\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login pendaftar menggunakan nomor pendaftaran dan kode akses"
+          },
+          "response": []
+        },
+        {
+          "name": "Login Admin/Prodi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/admin/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "admin", "login"]
+            },
+            "description": "Login admin atau staff prodi"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Mendapatkan informasi user yang sedang login"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout dan revoke token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pendaftar",
+      "description": "Endpoint untuk pendaftar (role: pendaftar)",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pendaftar/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "dashboard"]
+            },
+            "description": "Dashboard pendaftar dengan status pendaftaran dan hasil"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Biodata",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pendaftar/biodata",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "biodata"]
+            },
+            "description": "Mendapatkan biodata pendaftar"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Biodata",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nama_lengkap\": \"John Doe Updated\",\n    \"tanggal_lahir\": \"1995-05-15\",\n    \"tempat_lahir\": \"Jakarta\",\n    \"jenis_kelamin\": \"L\",\n    \"alamat\": \"Jl. Contoh No. 123, Jakarta\",\n    \"pendidikan_terakhir\": \"S1 Teknik Informatika\",\n    \"asal_institusi\": \"Universitas Indonesia\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pendaftar/biodata",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "biodata"]
+            },
+            "description": "Update biodata pendaftar"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Dokumen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "jenis_dokumen",
+                  "value": "ijazah",
+                  "description": "ijazah, transkrip, ktp, pas_foto, surat_rekomendasi, proposal, lainnya",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/pendaftar/dokumen",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "dokumen"]
+            },
+            "description": "Upload dokumen persyaratan (PDF, max 5MB)"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Foto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "foto",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/pendaftar/foto",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "foto"]
+            },
+            "description": "Upload pas foto (JPG/JPEG, max 2MB)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Jadwal Ujian",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pendaftar/jadwal",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "jadwal"]
+            },
+            "description": "Mendapatkan daftar jadwal ujian yang tersedia"
+          },
+          "response": []
+        },
+        {
+          "name": "Pilih Jadwal Ujian",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jadwal_ujian_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pendaftar/pilih-jadwal",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "pilih-jadwal"]
+            },
+            "description": "Memilih jadwal ujian"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Kartu Pendaftaran",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pendaftar/kartu",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "kartu"]
+            },
+            "description": "Mendapatkan data kartu pendaftaran untuk dicetak"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hasil Ujian",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{pendaftar_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pendaftar/hasil",
+              "host": ["{{base_url}}"],
+              "path": ["pendaftar", "hasil"]
+            },
+            "description": "Mendapatkan hasil ujian dan status kelulusan"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Staf Prodi",
+      "description": "Endpoint untuk staff program studi (role: prodi)",
+      "item": [
+        {
+          "name": "Get List Pendaftar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prodi/pendaftar?page=1&per_page=15&status_pendaftaran=registrasi&search=",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "pendaftar"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" },
+                { "key": "status_pendaftaran", "value": "registrasi", "description": "registrasi, biodata_lengkap, jadwal_dipilih, selesai" },
+                { "key": "status_kelulusan", "value": "", "disabled": true },
+                { "key": "search", "value": "" }
+              ]
+            },
+            "description": "Mendapatkan daftar pendaftar pada prodi yang dikelola"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Detail Pendaftar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prodi/pendaftar/1",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "pendaftar", "1"]
+            },
+            "description": "Mendapatkan detail pendaftar termasuk dokumen"
+          },
+          "response": []
+        },
+        {
+          "name": "Verifikasi Dokumen",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"dokumen_id\": 1,\n    \"status\": \"valid\",\n    \"catatan\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/prodi/verifikasi/1",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "verifikasi", "1"]
+            },
+            "description": "Verifikasi dokumen pendaftar (valid/tidak_valid)"
+          },
+          "response": []
+        },
+        {
+          "name": "Download Template Nilai",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prodi/form-nilai",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "form-nilai"]
+            },
+            "description": "Download template form nilai untuk input batch"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Batch Nilai",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"data\": [\n        {\n            \"nomor_pendaftaran\": \"PMB202600001\",\n            \"nilai\": 85.5\n        },\n        {\n            \"nomor_pendaftaran\": \"PMB202600002\",\n            \"nilai\": 78.0\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/prodi/upload-nilai",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "upload-nilai"]
+            },
+            "description": "Upload nilai ujian secara batch"
+          },
+          "response": []
+        },
+        {
+          "name": "Input Nilai Pendaftar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nilai_ujian\": 85.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/prodi/pendaftar/1/nilai",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "pendaftar", "1", "nilai"]
+            },
+            "description": "Input nilai ujian untuk satu pendaftar"
+          },
+          "response": []
+        },
+        {
+          "name": "Set Status Kelulusan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status_kelulusan\": \"lulus\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/prodi/pendaftar/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "pendaftar", "1", "status"]
+            },
+            "description": "Set status kelulusan (lulus/tidak_lulus/belum_diproses)"
+          },
+          "response": []
+        },
+        {
+          "name": "Kirim Notifikasi WA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"hasil\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/prodi/notifikasi/1",
+              "host": ["{{base_url}}"],
+              "path": ["prodi", "notifikasi", "1"]
+            },
+            "description": "Kirim notifikasi WhatsApp ke pendaftar (type: hasil/custom)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Endpoint untuk administrator (role: admin)",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "dashboard"]
+            },
+            "description": "Dashboard statistik sistem"
+          },
+          "response": []
+        },
+        {
+          "name": "Prodi",
+          "item": [
+            {
+              "name": "List Prodi",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/prodi",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "prodi"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Prodi",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"kode\": \"MPI\",\n    \"nama\": \"Magister Pendidikan Islam\",\n    \"jenjang\": \"S2\",\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/prodi",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "prodi"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Prodi",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/prodi/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "prodi", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Prodi",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nama\": \"Magister Ilmu Komunikasi Updated\",\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/prodi/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "prodi", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Prodi",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/prodi/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "prodi", "1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Periode",
+          "item": [
+            {
+              "name": "List Periode",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/periode",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "periode"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Periode",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nama\": \"PMB 2026 Gelombang 3\",\n    \"tanggal_buka\": \"2026-07-01\",\n    \"tanggal_tutup\": \"2026-09-30\",\n    \"is_active\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/periode",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "periode"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Periode",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/periode/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "periode", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Periode",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/periode/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "periode", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Periode",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/periode/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "periode", "1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Sesi Ujian",
+          "item": [
+            {
+              "name": "List Sesi",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/sesi",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "sesi"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Sesi",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nama\": \"Sesi Malam\",\n    \"jam_mulai\": \"18:00\",\n    \"jam_selesai\": \"21:00\",\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/sesi",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "sesi"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Sesi",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"is_active\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/sesi/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "sesi", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Sesi",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/sesi/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "sesi", "1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Ruang Ujian",
+          "item": [
+            {
+              "name": "List Ruang",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/ruang",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "ruang"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Ruang",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"kode\": \"R201\",\n    \"nama\": \"Ruang 201\",\n    \"kapasitas\": 35,\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/ruang",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "ruang"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Ruang",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"kapasitas\": 40\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/ruang/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "ruang", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Ruang",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/ruang/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "ruang", "1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Jadwal Ujian",
+          "item": [
+            {
+              "name": "List Jadwal",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/jadwal?periode_id=1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jadwal"],
+                  "query": [
+                    { "key": "periode_id", "value": "1" }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Jadwal",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"periode_id\": 1,\n    \"tanggal\": \"2026-03-01\",\n    \"sesi_id\": 1,\n    \"ruang_id\": 1,\n    \"kuota\": 30,\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/jadwal",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jadwal"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Jadwal",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/jadwal/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jadwal", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Jadwal",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"kuota\": 35\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/jadwal/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jadwal", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Jadwal",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/jadwal/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "jadwal", "1"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Users",
+          "item": [
+            {
+              "name": "List Users",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/users?role=prodi",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "users"],
+                  "query": [
+                    { "key": "role", "value": "prodi", "description": "admin/prodi" }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"username\": \"prodi_new\",\n    \"name\": \"Staff Prodi Baru\",\n    \"email\": \"prodi_new@pmb.ac.id\",\n    \"password\": \"password123\",\n    \"role\": \"prodi\",\n    \"prodi_id\": 1,\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/users",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "users"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/users/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "users", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update User",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Updated Name\",\n    \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/users/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "users", "1"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete User",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/users/2",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "users", "2"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "List All Pendaftar",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/pendaftar?page=1&per_page=15&prodi_id=&periode_id=&status_pendaftaran=&status_kelulusan=&search=",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "pendaftar"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" },
+                { "key": "prodi_id", "value": "" },
+                { "key": "periode_id", "value": "" },
+                { "key": "status_pendaftaran", "value": "" },
+                { "key": "status_kelulusan", "value": "" },
+                { "key": "search", "value": "" }
+              ]
+            },
+            "description": "List semua pendaftar (admin dapat melihat semua prodi)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
