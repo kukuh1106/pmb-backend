@@ -13,10 +13,14 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Services\NotifikasiService;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
+    public function __construct(
+        private NotifikasiService $notifikasiService
+    ) {}
     /**
      * Get admin dashboard with statistics
      */
@@ -54,6 +58,24 @@ class AdminController extends Controller
                 'pendaftar_by_status' => $pendaftarByStatus,
                 'kelulusan_by_status' => $kelulusanByStatus,
                 'periode_aktif' => PeriodePendaftaran::active()->first(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get WhatsApp (GOWA) connection status
+     */
+    public function getWhatsappStatus(): JsonResponse
+    {
+        $status = $this->notifikasiService->checkStatus();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'connected' => $status['connected'] ?? false,
+                'logged_in' => $status['logged_in'] ?? false,
+                'device_id' => $status['device_id'] ?? null,
+                'error' => $status['error'] ?? null,
             ],
         ]);
     }

@@ -90,6 +90,9 @@ Route::prefix('admin')
         // Dashboard
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
         
+        // WhatsApp Status
+        Route::get('/whatsapp/status', [AdminController::class, 'getWhatsappStatus']);
+        
         // Prodi CRUD
         Route::get('/prodi', [AdminController::class, 'indexProdi']);
         Route::post('/prodi', [AdminController::class, 'storeProdi']);
