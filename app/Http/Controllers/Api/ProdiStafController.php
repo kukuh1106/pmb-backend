@@ -23,6 +23,48 @@ class ProdiStafController extends Controller
     ) {}
 
     /**
+     * Get prodi dashboard with statistics
+     */
+    public function dashboard(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $prodiId = $user->prodi_id;
+
+        if (!$prodiId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke prodi manapun',
+            ], 403);
+        }
+
+        $totalPendaftar = Pendaftar::where('prodi_id', $prodiId)->count();
+
+        $pendaftarByStatus = [
+            'registrasi' => Pendaftar::where('prodi_id', $prodiId)->where('status_pendaftaran', 'registrasi')->count(),
+            'biodata_lengkap' => Pendaftar::where('prodi_id', $prodiId)->where('status_pendaftaran', 'biodata_lengkap')->count(),
+            'jadwal_dipilih' => Pendaftar::where('prodi_id', $prodiId)->where('status_pendaftaran', 'jadwal_dipilih')->count(),
+            'selesai' => Pendaftar::where('prodi_id', $prodiId)->where('status_pendaftaran', 'selesai')->count(),
+        ];
+
+        $kelulusanByStatus = [
+            'belum_diproses' => Pendaftar::where('prodi_id', $prodiId)->where('status_kelulusan', 'belum_diproses')->count(),
+            'lulus' => Pendaftar::where('prodi_id', $prodiId)->where('status_kelulusan', 'lulus')->count(),
+            'tidak_lulus' => Pendaftar::where('prodi_id', $prodiId)->where('status_kelulusan', 'tidak_lulus')->count(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_pendaftar' => $totalPendaftar,
+                'pendaftar_by_status' => $pendaftarByStatus,
+                'kelulusan_by_status' => $kelulusanByStatus,
+                'periode_aktif' => \App\Models\PeriodePendaftaran::active()->first(),
+                'prodi_name' => $user->prodi->nama ?? 'Program Studi',
+            ],
+        ]);
+    }
+
+    /**
      * Get list pendaftar for this prodi
      */
     public function getPendaftar(Request $request): JsonResponse
@@ -136,6 +178,8 @@ class ProdiStafController extends Controller
                         'id' => $doc->id,
                         'jenis_dokumen' => $doc->jenis_dokumen,
                         'file_name' => $doc->file_name,
+                        'file_path' => $doc->file_path,
+                        'file_url' => $doc->file_url,
                         'file_size' => $doc->file_size,
                         'status_verifikasi' => $doc->status_verifikasi,
                         'catatan' => $doc->catatan,

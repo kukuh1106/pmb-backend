@@ -68,6 +68,7 @@ Route::prefix('pendaftar')
 Route::prefix('prodi')
     ->middleware(['auth:sanctum', 'role:prodi'])
     ->group(function () {
+        Route::get('/dashboard', [ProdiStafController::class, 'dashboard']);
         Route::get('/pendaftar', [ProdiStafController::class, 'getPendaftar']);
         Route::get('/pendaftar/{id}', [ProdiStafController::class, 'getDetailPendaftar']);
         Route::put('/verifikasi/{id}', [ProdiStafController::class, 'verifikasiDokumen']);

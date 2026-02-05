@@ -611,7 +611,8 @@ class AdminController extends Controller
                         'jenis_dokumen' => $doc->jenis_dokumen,
                         'file_name' => $doc->file_name,
                         'file_size' => $doc->file_size,
-                        'file_path' => $doc->file_path, // Needed for download link construction in frontend if necessary
+                        'file_path' => $doc->file_path,
+                        'file_url' => $doc->file_url,
                         'status_verifikasi' => $doc->status_verifikasi,
                         'catatan' => $doc->catatan,
                         'created_at' => $doc->created_at->format('Y-m-d H:i:s'),
