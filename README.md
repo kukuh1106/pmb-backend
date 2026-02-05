@@ -179,33 +179,34 @@ Setelah seeding, tersedia akun berikut:
 ```
 app/
 ├── Http/
-│   ├── Controllers/Api/
-│   │   ├── AuthController.php
-│   │   ├── PublicController.php
-│   │   ├── PendaftarController.php
-│   │   ├── ProdiStafController.php
-│   │   └── AdminController.php
-│   ├── Middleware/
-│   │   └── CheckRole.php
-│   └── Requests/
-│       ├── RegisterRequest.php
-│       ├── LoginPendaftarRequest.php
-│       └── ...
+│   ├── Controllers/
+│   │   ├── Controller.php
+│   │   └── Api/
+│   │       ├── AdminController.php      # Admin CRUD operations
+│   │       ├── AuthController.php       # Authentication (login/logout)
+│   │       ├── PendaftarController.php  # Pendaftar dashboard & forms
+│   │       ├── ProdiStafController.php  # Staf prodi operations
+│   │       └── PublicController.php     # Public endpoints
+│   └── Middleware/
+│       └── CheckRole.php                # RBAC middleware
 ├── Models/
-│   ├── User.php
-│   ├── Pendaftar.php
-│   ├── Prodi.php
-│   ├── PeriodePendaftaran.php
-│   ├── SesiUjian.php
-│   ├── RuangUjian.php
+│   ├── Dokumen.php
 │   ├── JadwalUjian.php
-│   └── Dokumen.php
+│   ├── Pendaftar.php
+│   ├── PeriodePendaftaran.php
+│   ├── Prodi.php
+│   ├── RuangUjian.php
+│   ├── SesiUjian.php
+│   └── User.php
 └── Services/
-    ├── PendaftaranService.php
-    ├── JadwalService.php
-    ├── NotifikasiService.php
-    ├── FileUploadService.php
-    └── KelulusanService.php
+    ├── FileUploadService.php      # File/document upload (S3 support)
+    ├── JadwalService.php          # Jadwal ujian management
+    ├── KelulusanService.php       # Kelulusan processing
+    ├── NotifikasiService.php      # WhatsApp notifications (WAHA)
+    └── PendaftaranService.php     # Registration logic
+
+routes/
+└── api.php                        # API route definitions
 ```
 
 ## Testing
