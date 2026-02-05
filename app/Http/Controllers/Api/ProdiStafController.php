@@ -11,8 +11,12 @@ use App\Models\Pendaftar;
 use App\Services\FileUploadService;
 use App\Services\KelulusanService;
 use App\Services\NotifikasiService;
+use App\Exports\PendaftarNilaiExport;
+use App\Imports\PendaftarNilaiImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProdiStafController extends Controller
 {
@@ -239,43 +243,74 @@ class ProdiStafController extends Controller
     }
 
     /**
-     * Download template form nilai (Excel/CSV)
+     * Download template form nilai (Excel)
      */
-    public function downloadFormNilai(Request $request): JsonResponse
+    public function downloadFormNilai(Request $request): BinaryFileResponse|JsonResponse
     {
         $user = $request->user();
         
-        $pendaftar = Pendaftar::where('prodi_id', $user->prodi_id)
-            ->whereNotNull('jadwal_ujian_id')
-            ->select('nomor_pendaftaran', 'nama_lengkap', 'nilai_ujian')
-            ->get();
+        if (!$user->prodi_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke prodi manapun',
+            ], 403);
+        }
 
-        // Return as JSON for now, can be extended to generate Excel file
-        return response()->json([
-            'success' => true,
-            'message' => 'Template form nilai',
-            'data' => $pendaftar->map(function ($p) {
-                return [
-                    'nomor_pendaftaran' => $p->nomor_pendaftaran,
-                    'nama_lengkap' => $p->nama_lengkap,
-                    'nilai' => $p->nilai_ujian ?? '',
-                ];
-            }),
-        ]);
+        $includeStatus = $request->boolean('include_status', true);
+        $filename = 'template_nilai_kelulusan_' . date('Y-m-d_His') . '.xlsx';
+        
+        return Excel::download(
+            new PendaftarNilaiExport($user->prodi_id, $includeStatus),
+            $filename
+        );
     }
 
     /**
-     * Upload batch nilai
+     * Upload batch nilai dan/atau status kelulusan via Excel
      */
     public function uploadNilai(Request $request): JsonResponse
     {
+        $user = $request->user();
+        
+        if (!$user->prodi_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke prodi manapun',
+            ], 403);
+        }
+
+        // Check if it's an Excel file upload
+        if ($request->hasFile('file')) {
+            $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+            ]);
+
+            try {
+                $import = new PendaftarNilaiImport($user->prodi_id);
+                Excel::import($import, $request->file('file'));
+                
+                $result = $import->getResults();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => "Berhasil update {$result['success']} data, gagal {$result['failed']}",
+                    'data' => $result,
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memproses file: ' . $e->getMessage(),
+                ], 400);
+            }
+        }
+        
+        // Fallback: JSON array upload (backward compatible)
         $request->validate([
             'data' => 'required|array',
             'data.*.nomor_pendaftaran' => 'required|string',
-            'data.*.nilai' => 'required|numeric|min:0|max:100',
+            'data.*.nilai' => 'nullable|numeric|min:0|max:100',
+            'data.*.status_kelulusan' => 'nullable|in:lulus,tidak_lulus,belum_diproses',
         ]);
-
-        $user = $request->user();
 
         $result = $this->kelulusanService->batchInputNilai(
             $request->data,

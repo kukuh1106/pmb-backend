@@ -51,8 +51,8 @@ class KelulusanService
     }
 
     /**
-     * Batch input nilai from array
-     * Format: [['nomor_pendaftaran' => 'PMB2026xxxx', 'nilai' => 85.5], ...]
+     * Batch input nilai dan/atau status kelulusan from array
+     * Format: [['nomor_pendaftaran' => 'PMB2026xxxx', 'nilai' => 85.5, 'status_kelulusan' => 'lulus'], ...]
      */
     public function batchInputNilai(array $data, int $prodiId): array
     {
@@ -78,8 +78,33 @@ class KelulusanService
                     continue;
                 }
 
-                $pendaftar->update(['nilai_ujian' => $item['nilai']]);
-                $results['success']++;
+                $updateData = [];
+
+                // Handle nilai
+                if (isset($item['nilai']) && $item['nilai'] !== null && $item['nilai'] !== '') {
+                    $updateData['nilai_ujian'] = $item['nilai'];
+                }
+
+                // Handle status_kelulusan
+                if (isset($item['status_kelulusan']) && $item['status_kelulusan'] !== null && $item['status_kelulusan'] !== '') {
+                    if (in_array($item['status_kelulusan'], ['lulus', 'tidak_lulus', 'belum_diproses'])) {
+                        $updateData['status_kelulusan'] = $item['status_kelulusan'];
+                        if ($item['status_kelulusan'] !== 'belum_diproses') {
+                            $updateData['status_pendaftaran'] = 'selesai';
+                        }
+                    }
+                }
+
+                if (!empty($updateData)) {
+                    $pendaftar->update($updateData);
+                    $results['success']++;
+                } else {
+                    $results['failed']++;
+                    $results['errors'][] = [
+                        'nomor_pendaftaran' => $item['nomor_pendaftaran'],
+                        'message' => 'Tidak ada data nilai atau status yang diupdate',
+                    ];
+                }
             }
 
             DB::commit();
