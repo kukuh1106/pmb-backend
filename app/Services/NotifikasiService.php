@@ -162,6 +162,33 @@ class NotifikasiService
     }
 
     /**
+     * Send document valid notification
+     */
+    public function sendDokumenValid(string $phone, string $nama, string $jenisDokumen): bool
+    {
+        $message = "✅ *PMB Pascasarjana - Dokumen Terverifikasi*\n\n";
+        $message .= "Yth. *{$nama}*,\n\n";
+        $message .= "Dokumen *{$jenisDokumen}* Anda telah diverifikasi dan dinyatakan *VALID*.\n\n";
+        $message .= "Silakan login untuk melihat status dokumen lainnya.";
+
+        return $this->sendMessage($phone, $message);
+    }
+
+    /**
+     * Send all documents verified notification
+     */
+    public function sendVerifikasiSelesai(string $phone, string $nama): bool
+    {
+        $message = "🎉 *PMB Pascasarjana - Verifikasi Selesai*\n\n";
+        $message .= "Yth. *{$nama}*,\n\n";
+        $message .= "Selamat! *Semua dokumen* Anda telah diverifikasi dan dinyatakan *VALID*.\n\n";
+        $message .= "Silakan login untuk melihat informasi selanjutnya dan menunggu pengumuman hasil seleksi.\n\n";
+        $message .= "_Terima kasih atas partisipasi Anda._";
+
+        return $this->sendMessage($phone, $message);
+    }
+
+    /**
      * Send custom notification
      */
     public function sendCustom(string $phone, string $nama, string $subject, string $content): bool

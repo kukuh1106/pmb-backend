@@ -46,9 +46,10 @@ DB_DATABASE=pmb_pascasarjana
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
 
-# GOWA (Optional - untuk WhatsApp notification)
-# https://github.com/aldinokemal/go-whatsapp-web-multidevice
-GOWA_API_URL=http://localhost:3000
+# GOWA (WhatsApp notification)
+# Production: https://wa.pmb-uin.web.id
+# Docs: https://github.com/aldinokemal/go-whatsapp-web-multidevice
+GOWA_API_URL=https://wa.pmb-uin.web.id
 GOWA_DEVICE_ID=
 GOWA_BASIC_AUTH_USER=
 GOWA_BASIC_AUTH_PASSWORD=
@@ -272,14 +273,14 @@ docker run -d \
 
 ### Environment Variables untuk Docker
 
-| Variable       | Default            | Deskripsi           |
-| -------------- | ------------------ | ------------------- |
-| `APP_ENV`      | `production`       | Environment mode    |
-| `APP_DEBUG`    | `false`            | Debug mode          |
-| `DB_HOST`      | `postgres`         | Database host       |
-| `REDIS_HOST`   | `redis`            | Redis host          |
-| `AUTO_MIGRATE` | `false`            | Auto-run migrations |
-| `GOWA_API_URL` | `http://gowa:3000` | GOWA API endpoint   |
+| Variable       | Default                     | Deskripsi           |
+| -------------- | --------------------------- | ------------------- |
+| `APP_ENV`      | `production`                | Environment mode    |
+| `APP_DEBUG`    | `false`                     | Debug mode          |
+| `DB_HOST`      | `postgres`                  | Database host       |
+| `REDIS_HOST`   | `redis`                     | Redis host          |
+| `AUTO_MIGRATE` | `false`                     | Auto-run migrations |
+| `GOWA_API_URL` | `https://wa.pmb-uin.web.id` | GOWA API endpoint   |
 
 ### File Structure Docker
 

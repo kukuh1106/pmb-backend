@@ -220,14 +220,34 @@ class ProdiStafController extends Controller
             $request->catatan
         );
 
-        // Send notification if document is invalid
+        // Send notification based on document status
         if ($request->status === 'tidak_valid') {
+            // Send notification for invalid document
             $this->notifikasiService->sendDokumenTidakValid(
                 $pendaftar->no_whatsapp,
                 $pendaftar->nama_lengkap,
                 $dokumen->jenis_dokumen,
                 $request->catatan
             );
+        } elseif ($request->status === 'valid') {
+            // Check if all documents are now verified and valid
+            $allDokumen = Dokumen::where('pendaftar_id', $pendaftar->id)->get();
+            $allVerified = $allDokumen->every(fn($d) => $d->status_verifikasi === 'valid');
+            
+            if ($allVerified && $allDokumen->count() > 0) {
+                // All documents are verified and valid - send completion notification
+                $this->notifikasiService->sendVerifikasiSelesai(
+                    $pendaftar->no_whatsapp,
+                    $pendaftar->nama_lengkap
+                );
+            } else {
+                // Just this document is valid - send individual notification
+                $this->notifikasiService->sendDokumenValid(
+                    $pendaftar->no_whatsapp,
+                    $pendaftar->nama_lengkap,
+                    $dokumen->jenis_dokumen
+                );
+            }
         }
 
         return response()->json([
