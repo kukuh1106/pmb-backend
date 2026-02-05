@@ -133,4 +133,5 @@ Route::prefix('admin')
         
         // Pendaftar (Read Only)
         Route::get('/pendaftar', [AdminController::class, 'getPendaftar']);
+        Route::get('/pendaftar/{id}', [AdminController::class, 'showPendaftar']);
     });

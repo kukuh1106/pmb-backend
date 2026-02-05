@@ -564,4 +564,60 @@ class AdminController extends Controller
             ],
         ]);
     }
+
+    public function showPendaftar(int $id): JsonResponse
+    {
+        $pendaftar = Pendaftar::with([
+            'prodi',
+            'jadwalUjian.sesi',
+            'jadwalUjian.ruang',
+            'periode',
+            'dokumen'
+        ])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'pendaftar' => [
+                    'id' => $pendaftar->id,
+                    'nomor_pendaftaran' => $pendaftar->nomor_pendaftaran,
+                    'nama_lengkap' => $pendaftar->nama_lengkap,
+                    'no_whatsapp' => $pendaftar->no_whatsapp,
+                    'tanggal_lahir' => $pendaftar->tanggal_lahir?->format('Y-m-d'),
+                    'tempat_lahir' => $pendaftar->tempat_lahir,
+                    'jenis_kelamin' => $pendaftar->jenis_kelamin,
+                    'alamat' => $pendaftar->alamat,
+                    'pendidikan_terakhir' => $pendaftar->pendidikan_terakhir,
+                    'asal_institusi' => $pendaftar->asal_institusi,
+                    'foto_path' => $pendaftar->foto_path,
+                    'nilai_ujian' => $pendaftar->nilai_ujian,
+                    'status_pendaftaran' => $pendaftar->status_pendaftaran,
+                    'status_kelulusan' => $pendaftar->status_kelulusan,
+                    'created_at' => $pendaftar->created_at->format('Y-m-d H:i:s'),
+                ],
+                'prodi' => $pendaftar->prodi ? [
+                    'nama' => $pendaftar->prodi->nama,
+                    'jenjang' => $pendaftar->prodi->jenjang,
+                ] : null,
+                'jadwal_ujian' => $pendaftar->jadwalUjian ? [
+                    'tanggal' => $pendaftar->jadwalUjian->tanggal->format('Y-m-d'),
+                    'sesi' => $pendaftar->jadwalUjian->sesi->nama ?? null,
+                    'ruang' => $pendaftar->jadwalUjian->ruang->nama ?? null,
+                ] : null,
+                'periode' => $pendaftar->periode->nama ?? null,
+                'dokumen' => $pendaftar->dokumen->map(function ($doc) {
+                    return [
+                        'id' => $doc->id,
+                        'jenis_dokumen' => $doc->jenis_dokumen,
+                        'file_name' => $doc->file_name,
+                        'file_size' => $doc->file_size,
+                        'file_path' => $doc->file_path, // Needed for download link construction in frontend if necessary
+                        'status_verifikasi' => $doc->status_verifikasi,
+                        'catatan' => $doc->catatan,
+                        'created_at' => $doc->created_at->format('Y-m-d H:i:s'),
+                    ];
+                }),
+            ],
+        ]);
+    }
 }
