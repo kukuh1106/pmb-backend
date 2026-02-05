@@ -288,4 +288,4 @@ docker/
 
 ## License
 
-Proprietary - PT. GSP
+Proprietary - PT. Reagtive
