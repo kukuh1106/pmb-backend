@@ -4,20 +4,20 @@ Backend API untuk Sistem Penerimaan Mahasiswa Baru (PMB) Program Pascasarjana.
 
 ## Tech Stack
 
-| Layer              | Teknologi                            |
-| ------------------ | ------------------------------------ |
-| **Framework**      | Laravel 12 (PHP 8.3+)                |
-| **Database**       | PostgreSQL                           |
-| **Authentication** | Laravel Sanctum                      |
-| **Authorization**  | RBAC (Role-Based Access Control)     |
-| **WhatsApp API**   | WAHA (Self-hosted WhatsApp HTTP API) |
+| Layer              | Teknologi                          |
+| ------------------ | ---------------------------------- |
+| **Framework**      | Laravel 12 (PHP 8.3+)              |
+| **Database**       | PostgreSQL                         |
+| **Authentication** | Laravel Sanctum                    |
+| **Authorization**  | RBAC (Role-Based Access Control)   |
+| **WhatsApp API**   | GOWA (go-whatsapp-web-multidevice) |
 
 ## Requirements
 
 - PHP 8.3+
 - Composer
 - PostgreSQL / MySQL
-- (Optional) WAHA untuk notifikasi WhatsApp
+- (Optional) GOWA untuk notifikasi WhatsApp
 
 ## Installation
 
@@ -46,9 +46,12 @@ DB_DATABASE=pmb_pascasarjana
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
 
-# WAHA (Optional - untuk WhatsApp notification)
-WAHA_API_URL=http://localhost:3000
-WAHA_SESSION=default
+# GOWA (Optional - untuk WhatsApp notification)
+# https://github.com/aldinokemal/go-whatsapp-web-multidevice
+GOWA_API_URL=http://localhost:3000
+GOWA_DEVICE_ID=
+GOWA_BASIC_AUTH_USER=
+GOWA_BASIC_AUTH_PASSWORD=
 ```
 
 ### 3. Database Migration & Seeding
@@ -202,7 +205,7 @@ app/
     ├── FileUploadService.php      # File/document upload (S3 support)
     ├── JadwalService.php          # Jadwal ujian management
     ├── KelulusanService.php       # Kelulusan processing
-    ├── NotifikasiService.php      # WhatsApp notifications (WAHA)
+    ├── NotifikasiService.php      # WhatsApp notifications (GOWA)
     └── PendaftaranService.php     # Registration logic
 
 routes/
@@ -237,7 +240,7 @@ php artisan tinker         # Interactive console
 # Build dan jalankan semua services
 docker compose up -d
 
-# Dengan WhatsApp integration (WAHA)
+# Dengan WhatsApp integration (GOWA)
 docker compose --profile whatsapp up -d
 ```
 
@@ -265,7 +268,7 @@ docker run -d \
 | `backend`  | 8000 | Laravel API                       |
 | `postgres` | 5432 | PostgreSQL Database               |
 | `redis`    | 6379 | Redis Cache                       |
-| `waha`     | 3000 | WAHA WhatsApp (profile: whatsapp) |
+| `gowa`     | 3000 | GOWA WhatsApp (profile: whatsapp) |
 
 ### Environment Variables untuk Docker
 
@@ -276,7 +279,7 @@ docker run -d \
 | `DB_HOST`      | `postgres`         | Database host       |
 | `REDIS_HOST`   | `redis`            | Redis host          |
 | `AUTO_MIGRATE` | `false`            | Auto-run migrations |
-| `WAHA_API_URL` | `http://waha:3000` | WAHA API endpoint   |
+| `GOWA_API_URL` | `http://gowa:3000` | GOWA API endpoint   |
 
 ### File Structure Docker
 

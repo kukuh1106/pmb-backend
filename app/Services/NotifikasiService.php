@@ -8,36 +8,104 @@ use Illuminate\Support\Facades\Log;
 class NotifikasiService
 {
     private string $baseUrl;
-    private string $session;
+    private string $deviceId;
+    private ?string $basicAuthUser;
+    private ?string $basicAuthPassword;
 
     public function __construct()
     {
-        $this->baseUrl = config('services.waha.url', 'http://localhost:3000');
-        $this->session = config('services.waha.session', 'default');
+        $this->baseUrl = config('services.gowa.url', 'http://localhost:3000');
+        $this->deviceId = config('services.gowa.device_id', '');
+        $this->basicAuthUser = config('services.gowa.basic_auth_user');
+        $this->basicAuthPassword = config('services.gowa.basic_auth_password');
     }
 
     /**
-     * Send WhatsApp message via WAHA API
+     * Send WhatsApp message via GOWA (go-whatsapp-web-multidevice) API
+     * 
+     * @see https://github.com/aldinokemal/go-whatsapp-web-multidevice
      */
     public function sendMessage(string $phone, string $message): bool
     {
         try {
-            $response = Http::post("{$this->baseUrl}/api/sendText", [
-                'chatId' => $this->formatPhone($phone),
-                'text' => $message,
-                'session' => $this->session,
+            $request = Http::asJson();
+            
+            // Add basic auth if configured
+            if (!empty($this->basicAuthUser) && !empty($this->basicAuthPassword)) {
+                $request = $request->withBasicAuth($this->basicAuthUser, $this->basicAuthPassword);
+            }
+            
+            // Add device ID header if configured
+            if (!empty($this->deviceId)) {
+                $request = $request->withHeaders([
+                    'X-Device-Id' => $this->deviceId,
+                ]);
+            }
+            
+            // GOWA API endpoint: POST /send/message
+            $response = $request->post("{$this->baseUrl}/send/message", [
+                'phone' => $this->formatPhone($phone),
+                'message' => $message,
             ]);
 
             if ($response->successful()) {
-                Log::info("WA sent to {$phone}");
-                return true;
+                $body = $response->json();
+                if (isset($body['code']) && $body['code'] === 'SUCCESS') {
+                    Log::info("WA sent to {$phone}");
+                    return true;
+                }
+                Log::error("WA failed to {$phone}: " . $response->body());
+                return false;
             }
 
-            Log::error("WA failed to {$phone}: " . $response->body());
+            Log::error("WA failed to {$phone}: HTTP {$response->status()} - " . $response->body());
             return false;
         } catch (\Exception $e) {
             Log::error("WA exception: " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Check WhatsApp connection status
+     */
+    public function checkStatus(): array
+    {
+        try {
+            $request = Http::asJson();
+            
+            if (!empty($this->basicAuthUser) && !empty($this->basicAuthPassword)) {
+                $request = $request->withBasicAuth($this->basicAuthUser, $this->basicAuthPassword);
+            }
+            
+            if (!empty($this->deviceId)) {
+                $request = $request->withHeaders([
+                    'X-Device-Id' => $this->deviceId,
+                ]);
+            }
+            
+            $response = $request->get("{$this->baseUrl}/app/status");
+
+            if ($response->successful()) {
+                $body = $response->json();
+                return [
+                    'connected' => $body['results']['is_connected'] ?? false,
+                    'logged_in' => $body['results']['is_logged_in'] ?? false,
+                    'device_id' => $body['results']['device_id'] ?? null,
+                ];
+            }
+
+            return [
+                'connected' => false,
+                'logged_in' => false,
+                'error' => $response->body(),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'connected' => false,
+                'logged_in' => false,
+                'error' => $e->getMessage(),
+            ];
         }
     }
 
@@ -107,7 +175,7 @@ class NotifikasiService
 
     /**
      * Format phone number for WhatsApp
-     * Convert 08xxx to 628xxx format
+     * Convert 08xxx to 628xxx@s.whatsapp.net format
      */
     private function formatPhone(string $phone): string
     {
@@ -119,7 +187,7 @@ class NotifikasiService
             $phone = '62' . substr($phone, 1);
         }
 
-        // Add @c.us suffix for WAHA
-        return $phone . '@c.us';
+        // Add @s.whatsapp.net suffix for GOWA
+        return $phone . '@s.whatsapp.net';
     }
 }

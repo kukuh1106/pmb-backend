@@ -27,8 +27,12 @@ services:
       - QUEUE_CONNECTION=redis
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - WAHA_API_URL=http://waha:3000
-      - WAHA_SESSION=default
+      - GOWA_API_URL=http://gowa:3000
+      # Optional: Set device ID if using multi-device
+      # - GOWA_DEVICE_ID=
+      # Optional: Basic auth credentials (must match GOWA container)
+      # - GOWA_BASIC_AUTH_USER=admin
+      # - GOWA_BASIC_AUTH_PASSWORD=secret
       - AUTO_MIGRATE=true
     depends_on:
       postgres:
@@ -78,18 +82,23 @@ services:
     networks:
       - pmb-network
 
-  # WAHA - WhatsApp HTTP API (Optional)
-  waha:
-    image: devlikeapro/waha:latest
-    container_name: pmb-waha
+  # GOWA - Go WhatsApp Web Multi-Device (Optional)
+  # https://github.com/aldinokemal/go-whatsapp-web-multidevice
+  gowa:
+    image: aldinokemal/go-whatsapp-web-multidevice:latest
+    container_name: pmb-gowa
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - WHATSAPP_HOOK_URL=http://backend/api/webhook/whatsapp
-      - WHATSAPP_HOOK_EVENTS=message
+      # Optional: Set basic auth (format: user:password)
+      # - BASIC_AUTH=admin:secret
+      # Optional: Webhook configuration
+      - WEBHOOK=http://backend/api/webhook/whatsapp
+      # Optional: Auto mark read
+      - AUTO_MARK_READ=true
     volumes:
-      - waha-data:/app/.waha
+      - gowa-data:/app/storages
     networks:
       - pmb-network
     profiles:
@@ -103,4 +112,4 @@ volumes:
   postgres-data:
   redis-data:
   storage-data:
-  waha-data:
+  gowa-data:

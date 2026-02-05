@@ -37,16 +37,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | WAHA (WhatsApp HTTP API)
+    | GOWA (Go WhatsApp Web Multi-Device)
     |--------------------------------------------------------------------------
     |
-    | Configuration for WAHA self-hosted WhatsApp API.
-    | See: https://waha.devlike.pro/
+    | Configuration for go-whatsapp-web-multidevice self-hosted WhatsApp API.
+    | See: https://github.com/aldinokemal/go-whatsapp-web-multidevice
     |
     */
-    'waha' => [
-        'url' => env('WAHA_API_URL', 'http://localhost:3000'),
-        'session' => env('WAHA_SESSION', 'default'),
+    'gowa' => [
+        'url' => env('GOWA_API_URL', 'http://localhost:3000'),
+        'device_id' => env('GOWA_DEVICE_ID', ''),
+        'basic_auth_user' => env('GOWA_BASIC_AUTH_USER', ''),
+        'basic_auth_password' => env('GOWA_BASIC_AUTH_PASSWORD', ''),
     ],
 
 ];
